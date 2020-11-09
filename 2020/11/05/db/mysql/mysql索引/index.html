@@ -20,13 +20,15 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":null,"active":"gitalk","storage":true,"lazyload":false,"nav":{"gitalk":{"order":-2}},"activeClass":"gitalk"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta property="og:type" content="article">
+  <meta name="description" content="Explain命令使用：| id | select_type | table | partitions | type | possible_keys | key | key_len | ref | rows | filters | extra || :—– | :—– | :—– | :—– | :—– | :—– | :—– | :—– | :—– | :—– | :—– | :—– | :—–">
+<meta property="og:type" content="article">
 <meta property="og:title" content="Mysql索引解析">
 <meta property="og:url" content="http://example.com/2020/11/05/db/mysql/mysql%E7%B4%A2%E5%BC%95/index.html">
 <meta property="og:site_name" content="Jamzen的技术博客">
+<meta property="og:description" content="Explain命令使用：| id | select_type | table | partitions | type | possible_keys | key | key_len | ref | rows | filters | extra || :—– | :—– | :—– | :—– | :—– | :—– | :—– | :—– | :—– | :—– | :—– | :—– | :—–">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2020-11-05T03:29:18.000Z">
-<meta property="article:modified_time" content="2020-11-05T05:47:13.985Z">
+<meta property="article:modified_time" content="2020-11-09T05:33:13.069Z">
 <meta property="article:author" content="Jamzen">
 <meta property="article:tag" content="mysql">
 <meta name="twitter:card" content="summary">
@@ -219,7 +221,31 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        
+        <h3 id="Explain命令使用："><a href="#Explain命令使用：" class="headerlink" title="Explain命令使用："></a>Explain命令使用：</h3><p>| id | select_type | table | partitions | type | possible_keys | key | key_len | ref | rows | filters | extra |<br>| :—– | :—– | :—– | :—– | :—– | :—– | :—– | :—– | :—– | :—– | :—– | :—– | :—– |<br>| 1 | SIMPLE | user | | range | index3 | index3 | 768 | | 2 | 100 | Using index condition |</p>
+<p>各列的含义如下:</p>
+<ul>
+<li>id: SELECT 查询的标识符. 每个 SELECT 都会自动分配一个唯一的标识符.</li>
+<li>select_type: SELECT 查询的类型.</li>
+<li>table: 查询的是哪个表</li>
+<li>partitions: 匹配的分区</li>
+<li>type: join 类型</li>
+<li>possible_keys: 此次查询中可能选用的索引</li>
+<li>key: 此次查询中确切使用到的索引.</li>
+<li>ref: 哪个字段或常数与 key 一起被使用</li>
+<li>rows: 显示此查询一共扫描了多少行. 这个是一个估计值.</li>
+<li>filtered: 表示此查询条件所过滤的数据的百分比</li>
+<li>extra: 额外的信息</li>
+</ul>
+<h4 id="select-type-表示了查询的类型-它的常用取值有"><a href="#select-type-表示了查询的类型-它的常用取值有" class="headerlink" title="select_type 表示了查询的类型, 它的常用取值有:"></a>select_type 表示了查询的类型, 它的常用取值有:</h4><ul>
+<li>SIMPLE: 表示此查询不包含 UNION 查询或子查询</li>
+<li>PRIMARY: 表示此查询是最外层的查询</li>
+<li>UNION: 表示此查询是 UNION 的第二或随后的查询</li>
+<li>DEPENDENT UNION: UNION 中的第二个或后面的查询语句, 取决于外面的查询</li>
+<li>UNION RESULT: UNION 的结果</li>
+<li>SUBQUERY: 子查询中的第一个 SELECT</li>
+<li>DEPENDENT SUBQUERY: 子查询中的第一个 SELECT, 取决于外面的查询. 即子查询依赖于外层查询的结果.</li>
+</ul>
+
     </div>
 
     
@@ -303,6 +329,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Explain%E5%91%BD%E4%BB%A4%E4%BD%BF%E7%94%A8%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">Explain命令使用：</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#select-type-%E8%A1%A8%E7%A4%BA%E4%BA%86%E6%9F%A5%E8%AF%A2%E7%9A%84%E7%B1%BB%E5%9E%8B-%E5%AE%83%E7%9A%84%E5%B8%B8%E7%94%A8%E5%8F%96%E5%80%BC%E6%9C%89"><span class="nav-number">1.1.</span> <span class="nav-text">select_type 表示了查询的类型, 它的常用取值有:</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -318,7 +345,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">43</span>
+          <span class="site-state-item-count">44</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -367,7 +394,7 @@
   
   &copy; 
   <span itemprop="copyrightYear">2020</span>
-  <span>2020-11-08</span>
+  <span>2020-11-09</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
