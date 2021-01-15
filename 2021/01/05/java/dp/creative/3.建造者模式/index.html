@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":null,"active":"valine","storage":true,"lazyload":false,"nav":{"gitalk":{"order":-2}},"activeClass":"valine"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="建造者模式是把一个复杂对象的创建过程给结构化，当创建一个对象需要的参数大于5个，并且参数还可选的时候，如果使用构造器来区分，会使类的构造函数很多，使用起来非常混乱，并且对于部分必选参数，没办法进行合理控制，因此我们可以把一个复杂度对象的创建给结构化，分门别类的构建不同的部分，传统建造者模式的类图如下所示：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="建造者模式">
+<meta property="og:url" content="http://example.com/2021/01/05/java/dp/creative/3.%E5%BB%BA%E9%80%A0%E8%80%85%E6%A8%A1%E5%BC%8F/index.html">
+<meta property="og:site_name" content="Jamzen的技术博客">
+<meta property="og:description" content="建造者模式是把一个复杂对象的创建过程给结构化，当创建一个对象需要的参数大于5个，并且参数还可选的时候，如果使用构造器来区分，会使类的构造函数很多，使用起来非常混乱，并且对于部分必选参数，没办法进行合理控制，因此我们可以把一个复杂度对象的创建给结构化，分门别类的构建不同的部分，传统建造者模式的类图如下所示：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2021/01/05/java/dp/creative/3.%E5%BB%BA%E9%80%A0%E8%80%85%E6%A8%A1%E5%BC%8F/builder.png">
+<meta property="article:published_time" content="2021-01-05T03:29:18.000Z">
+<meta property="article:modified_time" content="2021-01-06T05:42:40.689Z">
+<meta property="article:author" content="Jamzen">
+<meta property="article:tag" content="设计模式">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/01/05/java/dp/creative/3.%E5%BB%BA%E9%80%A0%E8%80%85%E6%A8%A1%E5%BC%8F/builder.png">
+
+<link rel="canonical" href="http://example.com/2021/01/05/java/dp/creative/3.%E5%BB%BA%E9%80%A0%E8%80%85%E6%A8%A1%E5%BC%8F/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>建造者模式 | Jamzen的技术博客</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?7e4b73915dfab9c8bda7f19b88d2ec46";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Jamzen的技术博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/05/java/dp/creative/3.%E5%BB%BA%E9%80%A0%E8%80%85%E6%A8%A1%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Jamzen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jamzen的技术博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          建造者模式
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-01-05 11:29:18" itemprop="dateCreated datePublished" datetime="2021-01-05T11:29:18+08:00">2021-01-05</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/OOP/" itemprop="url" rel="index"><span itemprop="name">OOP</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/OOP/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2021/01/05/java/dp/creative/3.%E5%BB%BA%E9%80%A0%E8%80%85%E6%A8%A1%E5%BC%8F/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/01/05/java/dp/creative/3.%E5%BB%BA%E9%80%A0%E8%80%85%E6%A8%A1%E5%BC%8F/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>建造者模式是把一个复杂对象的创建过程给结构化，当创建一个对象需要的参数大于5个，并且参数还可选的时候，如果使用构造器来区分，会使类的构造函数很多，使用起来非常混乱，并且对于部分必选参数，没办法进行合理控制，因此我们可以把一个复杂度对象的创建给结构化，分门别类的构建不同的部分，传统建造者模式的类图如下所示：</p>
+<a id="more"></a>
+<p><img src="builder.png"><br>使用建造者模式的优点：</p>
+<ol>
+<li>在建造者模式中， 客户端不必知道产品内部组成的细节，将产品本身与产品的创建过程解耦，使得相同的创建过程可以创建不同的产品对象。</li>
+<li>每一个具体建造者都相对独立，而与其他的具体建造者无关，因此可以很方便地替换具体建造者或增加新的具体建造者， 用户使用不同的具体建造者即可得到不同的产品对象 。</li>
+<li>可以更加精细地控制产品的创建过程 。将复杂产品的创建步骤分解在不同的方法中，使得创建过程更加清晰，也更方便使用程序来控制创建过程。</li>
+<li>增加新的具体建造者无须修改原有类库的代码，指挥者类针对抽象建造者类编程，系统扩展方便，符合“开闭原则”。<br>实际在使用建造者模式时，通常会省略Director类的角色，并且让Builder承担部分Director的角色，再结合链式语法，可以使创建对象非常简洁并且使用方便，下面我们用Mybatis源码中的参数映射器ParameterMapping来分析：</li>
+</ol>
+<ul>
+<li>ParameterMapping的字段和构造方法都是private私有的，并且只提供get方法，那说明ParameterMapping的对象一旦创建成功就不能修改其属性值;</li>
+<li>ParameterMapping的静态内部类Builder负责创建ParameterMapping对象，并给成员变量赋值：<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ParameterMapping</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Configuration configuration;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String property;</span><br><span class="line">    <span class="keyword">private</span> ParameterMode mode;</span><br><span class="line">    <span class="keyword">private</span> Class&lt;?&gt; javaType = Object.class;</span><br><span class="line">    <span class="keyword">private</span> JdbcType jdbcType;</span><br><span class="line">    <span class="keyword">private</span> Integer numericScale;</span><br><span class="line">    <span class="keyword">private</span> TypeHandler&lt;?&gt; typeHandler;</span><br><span class="line">    <span class="keyword">private</span> String resultMapId;</span><br><span class="line">    <span class="keyword">private</span> String jdbcTypeName;</span><br><span class="line">    <span class="keyword">private</span> String expression;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">ParameterMapping</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Builder</span> </span>&#123;</span><br><span class="line">        <span class="comment">//创建对象</span></span><br><span class="line">        <span class="keyword">private</span> ParameterMapping parameterMapping = <span class="keyword">new</span> ParameterMapping();</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="title">Builder</span><span class="params">(Configuration configuration, String property, TypeHandler&lt;?&gt; typeHandler)</span> </span>&#123;</span><br><span class="line">            parameterMapping.configuration = configuration;</span><br><span class="line">            parameterMapping.property = property;</span><br><span class="line">            parameterMapping.typeHandler = typeHandler;</span><br><span class="line">            parameterMapping.mode = ParameterMode.IN;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="title">Builder</span><span class="params">(Configuration configuration, String property, Class&lt;?&gt; javaType)</span> </span>&#123;</span><br><span class="line">            parameterMapping.configuration = configuration;</span><br><span class="line">            parameterMapping.property = property;</span><br><span class="line">            parameterMapping.javaType = javaType;</span><br><span class="line">            parameterMapping.mode = ParameterMode.IN;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> Builder <span class="title">mode</span><span class="params">(ParameterMode mode)</span> </span>&#123;</span><br><span class="line">            parameterMapping.mode = mode;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> Builder <span class="title">javaType</span><span class="params">(Class&lt;?&gt; javaType)</span> </span>&#123;</span><br><span class="line">            parameterMapping.javaType = javaType;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> Builder <span class="title">jdbcType</span><span class="params">(JdbcType jdbcType)</span> </span>&#123;</span><br><span class="line">            parameterMapping.jdbcType = jdbcType;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> Builder <span class="title">numericScale</span><span class="params">(Integer numericScale)</span> </span>&#123;</span><br><span class="line">            parameterMapping.numericScale = numericScale;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        ......</span><br><span class="line">    &#125;</span><br><span class="line">    ......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+最终在Builder的build()方法中完成参数检验并返回创建的对象:<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> ParameterMapping <span class="title">build</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    resolveTypeHandler();</span><br><span class="line">    validate();</span><br><span class="line">    <span class="keyword">return</span> parameterMapping;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">validate</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (ResultSet.class.equals(parameterMapping.javaType)) &#123;</span><br><span class="line">    <span class="keyword">if</span> (parameterMapping.resultMapId == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">&quot;Missing resultmap in property &#x27;&quot;</span></span><br><span class="line">            + parameterMapping.property + <span class="string">&quot;&#x27;.  &quot;</span></span><br><span class="line">            + <span class="string">&quot;Parameters of type java.sql.ResultSet require a resultmap.&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (parameterMapping.typeHandler == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">&quot;Type handler was null on parameter mapping for property &#x27;&quot;</span></span><br><span class="line">        + parameterMapping.property + <span class="string">&quot;&#x27;. It was either not specified and/or could not be found for the javaType (&quot;</span></span><br><span class="line">        + parameterMapping.javaType.getName() + <span class="string">&quot;) : jdbcType (&quot;</span> + parameterMapping.jdbcType + <span class="string">&quot;) combination.&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">resolveTypeHandler</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (parameterMapping.typeHandler == <span class="keyword">null</span> &amp;&amp; parameterMapping.javaType != <span class="keyword">null</span>) &#123;</span><br><span class="line">    Configuration configuration = parameterMapping.configuration;</span><br><span class="line">    TypeHandlerRegistry typeHandlerRegistry = configuration.getTypeHandlerRegistry();</span><br><span class="line">    parameterMapping.typeHandler = typeHandlerRegistry.getTypeHandler(parameterMapping.javaType, parameterMapping.jdbcType);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+使用起来也非常方便：<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> ParameterMapping <span class="title">buildParameterMapping</span><span class="params">(String content)</span> </span>&#123;</span><br><span class="line">    ParameterMapping.Builder builder = <span class="keyword">new</span> ParameterMapping.Builder(configuration, property, propertyType);</span><br><span class="line">    Class&lt;?&gt; javaType = propertyType;</span><br><span class="line">    String typeHandlerAlias = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">for</span> (Map.Entry&lt;String, String&gt; entry : propertiesMap.entrySet()) &#123;</span><br><span class="line">    String name = entry.getKey();</span><br><span class="line">    String value = entry.getValue();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (<span class="string">&quot;javaType&quot;</span>.equals(name)) &#123;</span><br><span class="line">        javaType = resolveClass(value);</span><br><span class="line">        builder.javaType(javaType);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="string">&quot;jdbcType&quot;</span>.equals(name)) &#123;</span><br><span class="line">        builder.jdbcType(resolveJdbcType(value));</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="string">&quot;mode&quot;</span>.equals(name)) &#123;</span><br><span class="line">        builder.mode(resolveParameterMode(value));</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="string">&quot;numericScale&quot;</span>.equals(name)) &#123;</span><br><span class="line">        builder.numericScale(Integer.valueOf(value));</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="string">&quot;resultMap&quot;</span>.equals(name)) &#123;</span><br><span class="line">        builder.resultMapId(value);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="string">&quot;typeHandler&quot;</span>.equals(name)) &#123;</span><br><span class="line">        typeHandlerAlias = value;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="string">&quot;jdbcTypeName&quot;</span>.equals(name)) &#123;</span><br><span class="line">        builder.jdbcTypeName(value);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="string">&quot;property&quot;</span>.equals(name)) &#123;</span><br><span class="line">        <span class="comment">// Do Nothing</span></span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="string">&quot;expression&quot;</span>.equals(name)) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> BuilderException(<span class="string">&quot;Expression based parameters are not supported yet&quot;</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> BuilderException(<span class="string">&quot;An invalid property &#x27;&quot;</span> + name + <span class="string">&quot;&#x27; was found in mapping #&#123;&quot;</span> + content + <span class="string">&quot;&#125;.  Valid properties are &quot;</span> + PARAMETER_PROPERTIES);</span><br><span class="line">    &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (typeHandlerAlias != <span class="keyword">null</span>) &#123;</span><br><span class="line">    builder.typeHandler(resolveTypeHandler(javaType, typeHandlerAlias));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> builder.build();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag"># 设计模式</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/12/26/alg/leetcode/100/91.LeetCode.%E8%A7%A3%E7%A0%81%E6%96%B9%E6%B3%95/" rel="prev" title="LeetCode.解码方法">
+      <i class="fa fa-chevron-left"></i> LeetCode.解码方法
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/01/06/java/dp/structure/1.%E9%80%82%E9%85%8D%E5%99%A8%E6%A8%A1%E5%BC%8F/" rel="next" title="适配器模式">
+      适配器模式 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Jamzen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Jamzen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">109</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/jzqiao" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;jzqiao" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:jzqiao@outlook.com" title="E-Mail → mailto:jzqiao@outlook.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jamzen</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : true,
+      appId      : 'P5buHR3rmQQYzsRUgSSnx6hy-gzGzoHsz',
+      appKey     : 'xSY2DHx6DJobtvGVQ4y6xba7',
+      placeholder: "请在此输入你的留言",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : 'zh-cn' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
